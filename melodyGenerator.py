@@ -11,7 +11,7 @@ def getKey(stream):
             will be ('A', 'minor')
     """
     music21KeySignature = stream.flat.getElementsByClass(key.KeySignature)
-    if len(elements) == 0:
+    if len(music21KeySignature.elements) == 0:
         return None
     pitchAndMode = music21KeySignature.elements[0].pitchAndMode
     return pitchAndMode[0].name, str(pitchAndMode[1])
