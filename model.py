@@ -12,7 +12,7 @@ class Model:
     return self.dists[evidence]
 
 class ModelCreator:
-  def createModel(self, corpus):
+  def createModel(self, corpus, laplace = 0):
     """
     Creates and returns a model, given a corpus.
     
@@ -26,8 +26,10 @@ class ModelCreator:
         nextNote = song.nextNote()
         noteDists[note][nextNote] += 1
 
-    # Normalize all the next note distributions
     for note in noteDists:
+      # Apply Laplace smoothing
+      noteDists[note].incrementAll(Note.allNotes(), laplace)
+      # Normalize all the next note distributions
       noteDists[note].normalize()
 
     model = Model(noteDists)
@@ -90,11 +92,50 @@ class CrossValidator():
     self.numFolds = numFolds
 
   def run(self):
+    cum_train_error = 0.0
+    cum_test_error = 0.0
     for i in range(numFolds):
       (train, test) = self.splitTrainAndTestSets(i)
-      model = modelCreator.createModel(train)
-      predictor = Predictor(model)
+      model = self.modelCreator.createModel(train, laplace = 1)
+      train_error = self.getTrainError(model, train)
+      test_error = self.testModel(model, test)[2]
+      print i, "Training error:", train_error, "Test error:", test_error
+      cum_train_error += train_error
+      cum_test_error += test_error
       
+    avg_train_error = cum_train_error / numFolds
+    avg_test_error = cum_test_error / numFolds
+    print "Avg training error:", avg_train_error
+    print "Avg testing error:", avg_test_error
+
+  # TODO: Could make this faster by taking error as 1 - max(P(next note|note)) * P(note)?
+  def getTrainError(model, trainSet):
+    return self.testModel(model, trainSet)[2]
+
+  def testModel(self, model, testSet):
+    """
+    Tests the model on the testSet.
+
+    Returns the correct_count, incorrect_count, and error.
+
+    Assumes every song has a first note.
+    """
+    predictor = Predictor(model)
+    correct_count = 0
+    incorrect_count = 0
+    for song in testSet:
+      note = song.nextNote()
+      while song.hasNextNote():
+        actual_next_note = song.nextNote()
+        predicted_next_note = predictor.predictNextNote()
+        if actual_next_note == predicted_next_note:
+          correct_count += 1
+        else:
+          incorrect_count += 1
+    
+    total_count = incorrect_count + correct_count
+    error = incorrect_count / float(total_count)
+    return correct_count, incorrect_count, error
 
   def splitTrainAndTestSets(self, n):
     """
