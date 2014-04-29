@@ -223,3 +223,20 @@ class Counter(dict):
             addend[key] = -1 * y[key]
         return addend
 
+def sample(distribution, values = None):
+    if type(distribution) == Counter:
+        items = distribution.items()
+        distribution = [i[1] for i in items]
+        values = [i[0] for i in items]
+    if sum(distribution) != 1:
+        distribution = normalize(distribution)
+    choice = random.random()
+    i, total= 0, distribution[0]
+    while choice > total:
+        i += 1
+        total += distribution[i]
+    return values[i]
+
+def sampleFromCounter(ctr):
+    items = ctr.items()
+    return sample([v for k,v in items], [k for k,v in items])
