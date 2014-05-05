@@ -21,14 +21,15 @@ class ModelCreator:
     noteDists = collections.defaultdict(Counter)
     # Go through each song, adding to the count for P(next note|note)
     for song in corpus:
-      note = song.nextNote()
-      while song.hasNextNote():
-        nextNote = song.nextNote()
-        noteDists[note][nextNote] += 1
+      previousNote = None
+      for note in song:
+        if previousNote is not None:
+          noteDists[previousNote][note] += 1
+        previousNote = note
 
     for note in noteDists:
       # Apply Laplace smoothing
-      noteDists[note].incrementAll(Note.allNotes(), laplace)
+      # noteDists[note].incrementAll(Note.allNotes(), laplace)
       # Normalize all the next note distributions
       noteDists[note].normalize()
 
@@ -124,9 +125,7 @@ class CrossValidator():
     correct_count = 0
     incorrect_count = 0
     for song in testSet:
-      note = song.nextNote()
-      while song.hasNextNote():
-        actual_next_note = song.nextNote()
+      for actual_next_note in song:
         predicted_next_note = predictor.predictNextNote()
         if actual_next_note == predicted_next_note:
           correct_count += 1
