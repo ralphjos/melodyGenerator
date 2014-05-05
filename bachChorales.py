@@ -1,7 +1,9 @@
 from music21 import *
 import util
+import model
 
 melodies = []
+bwv = []
 threeFour = 0
 fourFour = 0
 twoTwo = 0
@@ -23,8 +25,10 @@ def getKey(stream):
     return pitchAndMode
 
 def getTimeSignature(stream):
-    music21TimeSignature = stream.flat.getElementsByClass(meter.TimeSignature)
-    return music21TimeSignature
+    timeSignatures = stream.flat.getElementsByClass(meter.TimeSignature)
+    if len(timeSignatures) != 1:
+        return len(timeSignatures)
+    return timeSignatures[0]
 
 def getScaleDegree(pitchAndMode, note):
     """
@@ -40,53 +44,66 @@ def getScaleDegree(pitchAndMode, note):
     degree = ref_scale.getScaleDegreeAndAccidentalFromPitch(pitch.Pitch(note.name))
     return degree
 
+def getFromCorpus(i):
+    chorale = corpus.parse('bach/bwv' + str(i))
+    melody = chorale.getElementById('Soprano')
+    if melody != None:
+        if getTimeSignature(melody).ratioString == "4/4" and getKey(melody)[1] == "major":
+            melodies.append(melody)
+            return
+    melody = chorale.getElementById('S.')
+    if melody != None:
+        if getTimeSignature(melody).ratioString == "4/4" and getKey(melody)[1] == "major":
+            melodies.append(melody)
+            return
+    melody = chorale.getElementsByClass(stream.Part)[0]
+    if getTimeSignature(melody).ratioString == "4/4" and getKey(melody)[1] == "major":
+        melodies.append(melody)
+        return
+        
 def loadMelodies():
     """
     Loads the melodies from BWV 250-438, minus a few
     For some reason, chorales 274, 275, and 409 are 
     missing from the corpus, hence the need for multiple loops
     """
-    """
     for i in range(250, 274):
-        chorale = corpus.parse('bach/bwv' + str(i))
-        melody = chorale.getElementById('Soprano')
-        if melody != None:
-            melodies.append(melody)
-        else:
-            melodies.append(chorale.getElementById('S.'))
-    """
-    for i in range(278, 409):
-        chorale = corpus.parse('bach/bwv' + str(i))
-        melody = chorale.getElementById('Soprano')
-        if melody != None:
-            melodies.append(melody)
-            continue
-        melody = chorale.getElementById('S.')
-        if melody != None:
-            melodies.append(melody)
-            continue
-        melody = chorale.getElementsByClass(stream.Part)[0]
-        melodies.append(melody)
-        
+        getFromCorpus(i)
+    for i in range (278, 281):
+        getFromCorpus(i)
+    for i in range (282, 304):
+        getFromCorpus(i)    
+    for i in range (305, 362):
+        getFromCorpus(i)
+    for i in range (363, 366):
+        getFromCorpus(i)
+    for i in range (367, 409): 
+        getFromCorpus(i)   
     for i in range(410, 439):
-        chorale = corpus.parse('bach/bwv' + str(i))
-        melodies.append(chorale.getElementById('Soprano'))
+        getFromCorpus(i)
 
 def run():
-    #loadMelodies()
-    chorale = corpus.parse('bach/bwv250')
-    melody = chorale.getElementsByClass(stream.Part)[0]
-    melody.show('musicxml')
-    melody.show('text')
-    #getKey(chorale)
-    #print 'There are ' + str(len(melodies)) + ' melodies ready for use!\n'   
-    # If you set up your music21 environment correctly, you can see that the first melody is the soprano part from BWV 250.
-    # melodies[0].show('musicxml')
-    # i = 0
-    
-    #while (i < len(melodies)):
-    #    print i, getKey(melodies[i])
-    #    i += 1
-    #print getScaleDegree(getKey(melodies[0]), note.Note('C4'))
-    
+    def showChorale(i):
+        chorale = corpus.parse('bach/bwv' + str(i))
+        chorale.show('musicxml')
+        chorale.show('text')
+    """
+    loadMelodies()
+    i = 0
+    while (i < len(melodies)):
+        print i, getKey(melodies[i]), getTimeSignature(melodies[i]), "\n" 
+        i += 1
+    """
+    getFromCorpus(307)
+    melodies[0].show('musicxml')
+    """
+    noteList = melodies[0].flat.getElementsByClass(note.Note)
+    print len(noteList)
+    for each in noteList:
+        print each
+    melodies[0].show('musicxml')
+    """
+    #print len(melodies)
+    #melodies[49].show('musicxml')
+    #melodies[107].show('musicxml')
 run()
