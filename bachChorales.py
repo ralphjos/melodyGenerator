@@ -69,6 +69,10 @@ def getFromCorpus(i):
     if getTimeSignature(melody).ratioString == "4/4" and getKey(melody)[1] == "major":
         melodies.append(melody)
         return
+
+def loadOneMelody():
+    getFromCorpus(307)
+    return melodies
         
 def loadMelodies(useOldMelodiesFile = True):
     """
@@ -76,11 +80,12 @@ def loadMelodies(useOldMelodiesFile = True):
     For some reason, chorales 274, 275, and 409 are 
     missing from the corpus, hence the need for multiple loops
     """
+    global melodies
     if useOldMelodiesFile:
       try:
         melodies = pickle.load( open( MELODIES_FILE, "rb" ) )
         return melodies
-      except IOException:
+      except IOError:
         pass
     
     for i in BWVNumbers:
@@ -102,7 +107,7 @@ def loadMelodies(useOldMelodiesFile = True):
         getFromCorpus(i)
     """
 
-    pickle.dump( melodies, open( MELODIES_FILE, "wb" ) );
+    # pickle.dump( melodies, open( MELODIES_FILE, "wb" ) )
 
     return melodies
 

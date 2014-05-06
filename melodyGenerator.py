@@ -1,19 +1,26 @@
 import music21
 import bachChorales
-import model
+from model import *
 
 def main():
-  corpus = bachChorales.loadMelodies()
-  corpus = flattenMelodies(corpus)
   modelCreator = ModelCreator()
+
+  corpus = bachChorales.loadMelodies()
+
   crossValidator = CrossValidator(corpus, modelCreator)
   crossValidator.run()
 
-def flattenMelodies(melodies):
-  flattened = []
-  for song in melodies:
-    flattened.append(song.flat.getElementsByClass(music21.note.Note)) 
-  return flattened
+def test():
+  modelCreator = BasicModelCreator()
+
+  corpus = bachChorales.loadOneMelody()
+  corpus[0].show()
+  corpus = modelCreator.normalizeCorpus(corpus)
+  corpus[0].show("text")
+
+  model = modelCreator.createModel(corpus)
+  print model.dists
 
 if __name__ == "__main__":
   main()
+  # test()
