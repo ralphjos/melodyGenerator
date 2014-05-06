@@ -2,10 +2,11 @@ from music21 import *
 import util
 import model
 import pickle
+import random
 
 MELODIES_FILE = "savedMelodies.p"
-
 melodies = []
+frozen_streams = []
 BWVNumbers = [250, 251, 252, 253, 255, 260, 262, 263, 264, 267, 268, 271, 284, \
               287, 290, 292, 293, 294, 296, 298, 302, 303, 307, 308, 317, 318, \
               322, 325, 329, 332, 336, 339, 340, 346, 347, 348, 355, 359, 360, \
@@ -53,6 +54,23 @@ def getScaleDegree(pitchAndMode, note):
     degree = ref_scale.getScaleDegreeAndAccidentalFromPitch(pitch.Pitch(note.name))
     return degree
 
+
+def intervalToC(pitch):
+    """
+    Given a pitch, determine the minimum number of half steps to C.
+    """
+    interval = (60 - pitch.midi) % 12
+    if interval >= 6:
+        interval -= 12
+    return interval
+
+def transposeToC(stream):
+    interval = intervalToC(pitch.Pitch(getKey(stream)[0].name + str(4)))
+    rtn = stream.transpose(interval)
+    rtn[1].keySignature = key.KeySignature(0)
+    rtn[1].keySignature.mode = 'major'
+    return rtn
+
 def getFromCorpus(i):
     chorale = corpus.parse('bach/bwv' + str(i))
     melody = chorale.getElementById('Soprano')
@@ -74,67 +92,27 @@ def loadOneMelody():
     getFromCorpus(307)
     return melodies
         
-def loadMelodies(useOldMelodiesFile = True):
-    """
-    Loads the melodies from BWV 250-438, minus a few
-    For some reason, chorales 274, 275, and 409 are 
-    missing from the corpus, hence the need for multiple loops
-    """
-    global melodies
-    if useOldMelodiesFile:
-      try:
-        melodies = pickle.load( open( MELODIES_FILE, "rb" ) )
-        return melodies
-      except IOError:
-        pass
-    
+def loadMelodies():
     for i in BWVNumbers:
         getFromCorpus(i)
-    """
-    for i in range(250, 274):
-        getFromCorpus(i)
-    for i in range (278, 281):
-        getFromCorpus(i)
-    for i in range (282, 304):
-        getFromCorpus(i)    
-    for i in range (305, 362):
-        getFromCorpus(i)
-    for i in range (363, 366):
-        getFromCorpus(i)
-    for i in range (367, 409): 
-        getFromCorpus(i)   
-    for i in range(410, 439):
-        getFromCorpus(i)
-    """
-
-    # pickle.dump( melodies, open( MELODIES_FILE, "wb" ) )
-
+    print "melodies loaded!...now transposing"
+    for i in range (0, len(melodies)):
+        melodies[i] = transposeToC(melodies[i])
+    print "melodies transposed!"
     return melodies
 
-def run():
-    def showChorale(i):
-        chorale = corpus.parse('bach/bwv' + str(i))
-        chorale.show('musicxml')
-        chorale.show('text')
+def load():
+
     loadMelodies()
+    
+    #messing with pickling
     """
-    loadMelodies()
-    i = 0
-    while (i < len(melodies)):
-        print i, getKey(melodies[i]), getTimeSignature(melodies[i]), "\n" 
-        i += 1
+    for i in range(0, len(melodies)):
+        curr_melody = melodies[i]
+        sf = freezeThaw.StreamFreezer(curr_melody)
+        data = sf.writeStr(fmt='pickle')
+        frozen_streams.append(data)
+    pickle.dump(frozen_streams, open(MELODIES_FILE, "wb"))
     """
-    """
-    getFromCorpus(307)
-    melodies[0].show('musicxml')
-    """
-    """
-    noteList = melodies[0].flat.getElementsByClass(note.Note)
-    print len(noteList)
-    for each in noteList:
-        print each
-    melodies[0].show('musicxml')
-    """
-    #print len(melodies)
-    #melodies[49].show('musicxml')
-    #melodies[107].show('musicxml')
+
+#loadMelodies()
