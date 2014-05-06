@@ -6,7 +6,13 @@ import pickle
 MELODIES_FILE = "savedMelodies.p"
 
 melodies = []
-bwv = []
+BWVNumbers = [250, 251, 252, 253, 255, 260, 262, 263, 264, 267, 268, 271, 284, \
+              287, 290, 292, 293, 294, 296, 298, 302, 303, 307, 308, 317, 318, \
+              322, 325, 329, 332, 336, 339, 340, 346, 347, 348, 355, 359, 360, \
+              361, 365, 367, 370, 371, 373, 375, 376, 377, 378, 379, 380, 384, \
+              385, 386, 387, 388, 389, 392, 393, 394, 395, 397, 398, 401, 402, \
+              407, 411, 414, 415, 422, 426, 427, 428, 429, 430, 431, 432, 433, \
+              436, 438]
 threeFour = 0
 fourFour = 0
 twoTwo = 0
@@ -77,6 +83,9 @@ def loadMelodies(useOldMelodiesFile = True):
       except IOException:
         pass
     
+    for i in BWVNumbers:
+        getFromCorpus(i)
+    """
     for i in range(250, 274):
         getFromCorpus(i)
     for i in range (278, 281):
@@ -91,6 +100,7 @@ def loadMelodies(useOldMelodiesFile = True):
         getFromCorpus(i)   
     for i in range(410, 439):
         getFromCorpus(i)
+    """
 
     pickle.dump( melodies, open( MELODIES_FILE, "wb" ) );
 
@@ -101,6 +111,7 @@ def run():
         chorale = corpus.parse('bach/bwv' + str(i))
         chorale.show('musicxml')
         chorale.show('text')
+    loadMelodies()
     """
     loadMelodies()
     i = 0
@@ -108,8 +119,10 @@ def run():
         print i, getKey(melodies[i]), getTimeSignature(melodies[i]), "\n" 
         i += 1
     """
+    """
     getFromCorpus(307)
     melodies[0].show('musicxml')
+    """
     """
     noteList = melodies[0].flat.getElementsByClass(note.Note)
     print len(noteList)
@@ -120,4 +133,3 @@ def run():
     #print len(melodies)
     #melodies[49].show('musicxml')
     #melodies[107].show('musicxml')
-run()
