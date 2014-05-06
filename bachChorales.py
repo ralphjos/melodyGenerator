@@ -1,6 +1,9 @@
 from music21 import *
 import util
 import model
+import pickle
+
+MELODIES_FILE = "savedMelodies.p"
 
 melodies = []
 bwv = []
@@ -61,12 +64,19 @@ def getFromCorpus(i):
         melodies.append(melody)
         return
         
-def loadMelodies():
+def loadMelodies(useOldMelodiesFile = True):
     """
     Loads the melodies from BWV 250-438, minus a few
     For some reason, chorales 274, 275, and 409 are 
     missing from the corpus, hence the need for multiple loops
     """
+    if useOldMelodiesFile:
+      try:
+        melodies = pickle.load( open( MELODIES_FILE, "rb" ) )
+        return melodies
+      except IOException:
+        pass
+    
     for i in range(250, 274):
         getFromCorpus(i)
     for i in range (278, 281):
@@ -81,6 +91,10 @@ def loadMelodies():
         getFromCorpus(i)   
     for i in range(410, 439):
         getFromCorpus(i)
+
+    pickle.dump( melodies, open( MELODIES_FILE, "wb" ) );
+
+    return melodies
 
 def run():
     def showChorale(i):
