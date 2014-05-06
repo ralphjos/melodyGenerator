@@ -56,18 +56,15 @@ def getFromCorpus(i):
     if melody != None:
         if getTimeSignature(melody).ratioString == "4/4" and getKey(melody)[1] == "major":
             melodies.append(melody)
-            print str(i) + ",",
             return
     melody = chorale.getElementById('S.')
     if melody != None:
         if getTimeSignature(melody).ratioString == "4/4" and getKey(melody)[1] == "major":
             melodies.append(melody)
-            print str(i) + ",",
             return
     melody = chorale.getElementsByClass(stream.Part)[0]
     if getTimeSignature(melody).ratioString == "4/4" and getKey(melody)[1] == "major":
         melodies.append(melody)
-        print str(i) + ",",
         return
         
 def loadMelodies():
