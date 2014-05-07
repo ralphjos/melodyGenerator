@@ -9,6 +9,7 @@ class Note:
 class Model:
   def __init__(self, dists):
     self.dists = dists
+
   def getNextNoteDistribution(self, evidence):
     """
     Returns a probability distribution for the next note,
@@ -16,7 +17,17 @@ class Model:
     """
     return self.dists[evidence]
 
+  @staticmethod
+  def toModelNote(note):
+    modelNote = music21.note.Note(note.pitch.nameWithOctave)
+    modelNote.quarterLength = note.quarterLength
+    return modelNote
+
+
 class ModelCreator:
+  def __init__(self, modelCls):
+    self.modelCls = modelCls
+
   def createModel(self, corpus, laplace = 0):
     """
     Creates and returns a model, given a corpus.
@@ -40,36 +51,34 @@ class ModelCreator:
       noteDists[note].normalize()
     """
 
-    model = Model(noteDists)
+    model = self.modelCls(noteDists)
     return model
 
-  def normalizeCorpus(self, melodies):
+  def normalizeCorpus(self, corpus):
+    # Make music21 notes work as keys of dictionaries
     music21.note.Note.__hash__ = lambda self: hash((self.pitch.nameWithOctave, self.duration.quarterLength))
+
     normalized = []
-    for song in melodies:
+    for song in corpus:
       normalizedSong = music21.stream.Stream()
       normalizedSong.append(Note.startOfSong)
 
       song = song.flat.getElementsByClass(music21.note.Note)
       for note in song:
-        normalizedSong.append(self.toModelNote(note))
+        normalizedSong.append(self.modelCls.toModelNote(note))
       
       # song.insert(-1, Note.startOfSong)
-      song.append(Note.endOfSong)
-      normalized.append(song) 
+      normalizedSong.append(Note.endOfSong)
+      normalized.append(normalizedSong) 
     return normalized
-
-  def toModelNote(self, note):
-    modelNote = music21.note.Note(note.pitch.nameWithOctave)
-    modelNote.quarterLength = note.quarterLength
-    return modelNote
 
 class BasicModelCreator(ModelCreator):
   def createModel(self, corpus, laplace = 0):
     noteDists = collections.defaultdict(util.Counter)
     for song in corpus:
       for note in song:
-        noteDists[Note.startOfSong][note] += 1
+        if note != Note.startOfSong:
+          noteDists[Note.startOfSong][note] += 1
 
     model = Model(noteDists)
     return model
@@ -132,17 +141,16 @@ class Generator(Predictor):
     dist = self.getNextNoteDistribution()
     return util.sampleFromCounter(dist)
 
-class CrossValidator():
-  def __init__(self, corpus, modelCreator, numFolds = 10):
+class Tester():
+  def __init__(self, corpus, modelCreator):
     self.modelCreator = modelCreator
     self.corpus = modelCreator.normalizeCorpus(corpus)
-    self.numFolds = numFolds
 
-  def run(self):
+  def runCrossValidation(self, numFolds = 10):
     cum_train_error = 0.0
     cum_test_error = 0.0
-    for i in range(self.numFolds):
-      (train, test) = self.splitTrainAndTestSets(i)
+    for i in range(numFolds):
+      (train, test) = self.splitTrainAndTestSets(i, numFolds)
       model = self.modelCreator.createModel(train, laplace = 0)
       train_error = self.getTrainError(model, train)
       test_error = self.testModel(model, test)[2]
@@ -150,8 +158,8 @@ class CrossValidator():
       cum_train_error += train_error
       cum_test_error += test_error
       
-    avg_train_error = cum_train_error / self.numFolds
-    avg_test_error = cum_test_error / self.numFolds
+    avg_train_error = cum_train_error / numFolds
+    avg_test_error = cum_test_error / numFolds
     print "Avg training error:", avg_train_error
     print "Avg testing error:", avg_test_error
 
@@ -177,13 +185,14 @@ class CrossValidator():
           correct_count += 1
         else:
           incorrect_count += 1
+        # print predicted_next_note, actual_next_note, incorrect_count
         predictor.setNextNote(actual_next_note)
     
     total_count = incorrect_count + correct_count
     error = incorrect_count / float(total_count)
     return correct_count, incorrect_count, error
 
-  def splitTrainAndTestSets(self, n):
+  def splitTrainAndTestSets(self, n, numFolds = 10):
     """
     Splits the corpus into train and test sets by placing every nth
     song in the test set. n should be between 0 and numFolds-1, inclusive.
@@ -191,7 +200,7 @@ class CrossValidator():
     train = []
     test = []
     for i in range(len(self.corpus)):
-      if i % self.numFolds == n:
+      if i % numFolds == n:
         test.append(self.corpus[i])
       else:
         train.append(self.corpus[i])

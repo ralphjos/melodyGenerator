@@ -88,6 +88,10 @@ def getFromCorpus(i):
     if getTimeSignature(melody).ratioString == "4/4" and getKey(melody)[1] == "major":
         melodies.append(melody)
         return
+
+def loadOneMelody():
+    getFromCorpus(307)
+    return melodies
         
 def loadMelodies():
     for i in BWVNumbers:
@@ -109,7 +113,6 @@ def createPickle():
         data = sf.writeStr(fmt='pickle')
         frozen_streams.append(data)
     pickle.dump(frozen_streams, open(MELODIES_FILE, "wb"))
-    frozen_streams = pickle.load(open())
     
 def getMelodiesFromPickle():
     thawed_streams = []
@@ -121,6 +124,5 @@ def getMelodiesFromPickle():
         thawed_streams.append(s)
     return thawed_streams
     
-    
-
-
+if __name__ == "__main__":
+  createPickle()
