@@ -88,10 +88,6 @@ def getFromCorpus(i):
     if getTimeSignature(melody).ratioString == "4/4" and getKey(melody)[1] == "major":
         melodies.append(melody)
         return
-
-def loadOneMelody():
-    getFromCorpus(307)
-    return melodies
         
 def loadMelodies():
     for i in BWVNumbers:
@@ -102,20 +98,29 @@ def loadMelodies():
     print "melodies transposed!"
     return melodies
 
-def load():
+def createPickle():
 
     loadMelodies()
     # melodies[i].show('musicxml')
     # messing with pickling
-    """
     for i in range(0, len(melodies)):
         curr_melody = melodies[i]
         sf = freezeThaw.StreamFreezer(curr_melody)
         data = sf.writeStr(fmt='pickle')
         frozen_streams.append(data)
     pickle.dump(frozen_streams, open(MELODIES_FILE, "wb"))
-    """
+    frozen_streams = pickle.load(open())
     
-    #frozen_streams = pickle.load(open())
+def getMelodiesFromPickle():
+    thawed_streams = []
+    data = pickle.load(open(MELODIES_FILE, "rb"))
+    st = freezeThaw.StreamThawer()
+    for frozen_stream in data:
+        st.openStr(frozen_stream)
+        s = st.stream
+        thawed_streams.append(s)
+    return thawed_streams
+    
+    
 
 
