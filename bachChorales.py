@@ -7,13 +7,14 @@ import random
 MELODIES_FILE = "savedMelodies.p"
 melodies = []
 frozen_streams = []
-BWVNumbers = [250, 251, 252, 253, 255, 260, 262, 263, 264, 267, 268, 271, 284, \
-              287, 290, 292, 293, 294, 296, 298, 302, 303, 307, 308, 317, 318, \
-              322, 325, 329, 332, 336, 339, 340, 346, 347, 348, 355, 359, 360, \
-              361, 365, 367, 370, 371, 373, 375, 376, 377, 378, 379, 380, 384, \
-              385, 386, 387, 388, 389, 392, 393, 394, 395, 397, 398, 401, 402, \
-              407, 411, 414, 415, 422, 426, 427, 428, 429, 430, 431, 432, 433, \
-              436, 438]
+BWVNumbers = [250, 251, 252, 253, 255, 260, 262, 263, 264, 267, \
+              268, 271, 284, 287, 290, 292, 293, 294, \
+              302, 303, 307, 308, 317, 318, 325, 329, 332, \
+              336, 339, 340, 346, 347, 348, 355, 359, 360, 361, \
+              365, 370, 371, 375, 376, 377, 378, 379, \
+              380, 384, 385, 386, 387, 388, 389, 392, 393, 394, \
+              395, 397, 398, 401, 402, 414, 415, 422, \
+              426, 427, 428, 429, 430, 431, 432, 433, 436, 438]
 threeFour = 0
 fourFour = 0
 twoTwo = 0
@@ -104,8 +105,8 @@ def loadMelodies():
 def load():
 
     loadMelodies()
-    
-    #messing with pickling
+    # melodies[i].show('musicxml')
+    # messing with pickling
     """
     for i in range(0, len(melodies)):
         curr_melody = melodies[i]
@@ -114,5 +115,7 @@ def load():
         frozen_streams.append(data)
     pickle.dump(frozen_streams, open(MELODIES_FILE, "wb"))
     """
+    
+    #frozen_streams = pickle.load(open())
 
-#loadMelodies()
+
