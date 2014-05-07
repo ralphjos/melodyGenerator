@@ -23,9 +23,12 @@ class Model:
     modelNote.quarterLength = note.quarterLength
     return modelNote
 
+class BasicModel(Model):
+  def getNextNoteDistribution(self, evidence):
+    return self.dists
 
 class ModelCreator:
-  def __init__(self, modelCls):
+  def __init__(self, modelCls = Model):
     self.modelCls = modelCls
 
   def createModel(self, corpus, laplace = 0):
@@ -73,14 +76,16 @@ class ModelCreator:
     return normalized
 
 class BasicModelCreator(ModelCreator):
+  def __init__(self, modelCls = BasicModel):
+    self.modelCls = modelCls
   def createModel(self, corpus, laplace = 0):
-    noteDists = collections.defaultdict(util.Counter)
+    noteDist = util.Counter()
     for song in corpus:
       for note in song:
         if note != Note.startOfSong:
-          noteDists[Note.startOfSong][note] += 1
+          noteDist[note] += 1
 
-    model = Model(noteDists)
+    model = self.modelCls(noteDist)
     return model
 
 class Predictor:
@@ -89,7 +94,6 @@ class Predictor:
 
   Usage:
   >>> predictor = Predictor(model)
-  >>> nextNote = Note.startOfSong
   >>> while nextNote != Note.endOfSong:
   >>>   nextNote = predictor.predictAndSetNextNote()
   """
@@ -115,7 +119,8 @@ class Predictor:
     if not self.state:
       return self.getStartNoteDistribution()
 
-    return self.model.getNextNoteDistribution(self.state[-1])
+    nextNoteDist = self.model.getNextNoteDistribution(self.state[-1])
+    return nextNoteDist
 
   def setNextNote(self, note):
     """

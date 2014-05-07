@@ -3,7 +3,7 @@ import bachChorales
 from model import *
 
 def main():
-  modelCreator = ModelCreator(Model)
+  modelCreator = BasicModelCreator()
 
   corpus = bachChorales.getMelodiesFromPickle()
 
@@ -11,7 +11,7 @@ def main():
   tester.runCrossValidation()
 
 def test():
-  modelCreator = BasicModelCreator(Model)
+  modelCreator = BasicModelCreator()
 
   corpus = bachChorales.loadOneMelody()
   # corpus[0].show()
