@@ -154,7 +154,11 @@ class Generator(Predictor):
 
   def generateNextNote(self):
     note = self.predictAndSetNextNote()
-    return copy.deepcopy(note)
+    if note == Note.endOfSong or note == Note.startOfSong:
+      return note
+    else:
+      return copy.deepcopy(note)
+
 
 class Tester():
   def __init__(self, corpus, modelCreator):
