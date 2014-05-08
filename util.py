@@ -1,3 +1,5 @@
+import random
+
 def sign( x ):
     """
     Returns 1 or -1 depending on the sign of x
@@ -223,13 +225,49 @@ class Counter(dict):
             addend[key] = -1 * y[key]
         return addend
 
-def sample(distribution, values = None):
+def normalize(vectorOrCounter):
+    """
+    normalize a vector or counter by dividing each value by the sum of all values
+    """
+    normalizedCounter = Counter()
+    if type(vectorOrCounter) == type(normalizedCounter):
+        counter = vectorOrCounter
+        total = float(counter.totalCount())
+        if total == 0: return counter
+        for key in counter.keys():
+            value = counter[key]
+            normalizedCounter[key] = value / total
+        return normalizedCounter
+    else:
+        vector = vectorOrCounter
+        s = float(sum(vector))
+        if s == 0: return vector
+        return [el / s for el in vector]
+
+def nSample(distribution, values, n):
+    if sum(distribution) != 1:
+        distribution = normalize(distribution)
+    rand = [random.random() for i in range(n)]
+    rand.sort()
+    samples = []
+    samplePos, distPos, cdf = 0,0, distribution[0]
+    while samplePos < n:
+        if rand[samplePos] < cdf:
+            samplePos += 1
+            samples.append(values[distPos])
+        else:
+            distPos += 1
+            cdf += distribution[distPos]
+    return samples
+
+def sample(distribution, values = None, seed = None):
     if type(distribution) == Counter:
         items = distribution.items()
         distribution = [i[1] for i in items]
         values = [i[0] for i in items]
     if sum(distribution) != 1:
         distribution = normalize(distribution)
+    # random.seed(seed)
     choice = random.random()
     i, total= 0, distribution[0]
     while choice > total:
@@ -237,6 +275,6 @@ def sample(distribution, values = None):
         total += distribution[i]
     return values[i]
 
-def sampleFromCounter(ctr):
+def sampleFromCounter(ctr, seed = None):
     items = ctr.items()
     return sample([v for k,v in items], [k for k,v in items])

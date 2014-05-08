@@ -1,6 +1,7 @@
 import util
 import collections
 import music21
+import copy
 
 class Note:
   startOfSong = music21.ElementWrapper('startOfSong')
@@ -142,9 +143,18 @@ class Generator(Predictor):
   """
   Generates new notes from an underlying model.
   """
+  def __init__(self, model, seed = None):
+    self.model = model
+    self.state = []
+    self.seed = seed
+
   def predictNextNote(self):
     dist = self.getNextNoteDistribution()
-    return util.sampleFromCounter(dist)
+    return util.sample(dist, seed = self.seed)
+
+  def generateNextNote(self):
+    note = self.predictAndSetNextNote()
+    return copy.deepcopy(note)
 
 class Tester():
   def __init__(self, corpus, modelCreator):
