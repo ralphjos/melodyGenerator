@@ -168,6 +168,8 @@ class Tester():
   def runCrossValidation(self, numFolds = 10):
     cum_train_error = 0.0
     cum_test_error = 0.0
+    if len(self.corpus) < numFolds:
+      numFolds = len(self.corpus)
     for i in range(numFolds):
       (train, test) = self.splitTrainAndTestSets(i, numFolds)
       model = self.modelCreator.createModel(train, laplace = 0)
@@ -218,6 +220,8 @@ class Tester():
     """
     train = []
     test = []
+    if len(self.corpus) < numFolds:
+      numFolds = len(self.corpus)
     for i in range(len(self.corpus)):
       if i % numFolds == n:
         test.append(self.corpus[i])

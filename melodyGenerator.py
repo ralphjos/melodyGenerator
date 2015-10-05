@@ -1,5 +1,6 @@
 import music21
 import bachChorales
+import popSongs
 from model import *
 import argparse
 
@@ -10,7 +11,9 @@ def main():
   parser.add_argument('-d', '--debug', action='store_true',
                     help='debug model')
   parser.add_argument('-m', '--model', default='one',
-                    help='specify the model type')
+                    help='specify the model typei, basic or one')
+  parser.add_argument('-c', '--corpus', default='bach',
+                    help='specify the corpus, bach or pop')
 
   args = parser.parse_args()
 
@@ -21,25 +24,30 @@ def main():
     print "Model: One-step lookahead"
     modelCreator = ModelCreator()
 
+  print "Loading corpus..."
+  if args.corpus == 'bach':
+    print "Corpus: Bach"
+    corpus = bachChorales.getMelodiesFromPickle()
+  else:
+    print "Corpus: Pop"
+    corpus = popSongs.loadCorpus()
+
   if args.debug:
     debugTest(modelCreator)
   elif args.test:
-    fullTest(modelCreator)
+    fullTest(modelCreator, corpus)
   else:
-    model = generateModel(modelCreator)
+    model = generateModel(modelCreator, corpus)
     generateSong(model)
 
-def fullTest(modelCreator):
-  print "Loading corpus..."
-  corpus = bachChorales.getMelodiesFromPickle()
-
+def fullTest(modelCreator, corpus):
   print "Running cross validation..."
   tester = Tester(corpus, modelCreator)
   tester.runCrossValidation()
 
 def debugTest(modelCreator):
   corpus = bachChorales.loadOneMelody()
-  # corpus[0].show()
+  corpus[0].show()
   corpus = modelCreator.normalizeCorpus(corpus)
   # corpus[0].show("text")
 
@@ -63,10 +71,7 @@ def generateSong(model, seed = 0):
   # song.show('text')
   song.show('musicxml')
 
-def generateModel(modelCreator):
-  print "Loading corpus..."
-  corpus = bachChorales.getMelodiesFromPickle()
-
+def generateModel(modelCreator, corpus):
   print "Creating model..."
   corpus = modelCreator.normalizeCorpus(corpus)
   model = modelCreator.createModel(corpus)
